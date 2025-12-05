@@ -1,0 +1,247 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Todo API",
+    "version": "1.0.0",
+    "description": "Simple SQLite-backed Todo API"
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "Todo": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "title": { "type": "string", "example": "Buy milk" },
+          "completed": { "type": "boolean", "example": false },
+          "createdAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "title", "completed", "createdAt"]
+      },
+      "TodoInput": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string", "example": "Buy milk" },
+          "completed": { "type": "boolean", "example": false }
+        },
+        "required": ["title"]
+      },
+      "TodoReplace": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string", "example": "Buy milk" },
+          "completed": { "type": "boolean", "example": true }
+        },
+        "required": ["title", "completed"]
+      },
+      "TodoPatch": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string", "example": "Buy milk" },
+          "completed": { "type": "boolean", "example": true }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string", "example": "Todo not found" }
+        },
+        "required": ["error"]
+      }
+    }
+  },
+  "paths": {
+    "/todos": {
+      "get": {
+        "summary": "List todos",
+        "parameters": [
+          {
+            "name": "completed",
+            "in": "query",
+            "description": "Filter by completion status",
+            "schema": { "type": "string", "enum": ["true", "false"] }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of todos",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Todo" } }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a todo",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/TodoInput" } }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Todo created",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Todo" } }
+            }
+          },
+          "400": {
+            "description": "Invalid payload",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
+            }
+          }
+        }
+      }
+    },
+    "/todos/search": {
+      "get": {
+        "summary": "Search todos by title keyword",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": true,
+            "description": "Substring to match against todo titles",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Matching todos",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Todo" } }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid keyword",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
+            }
+          }
+        }
+      }
+    },
+    "/todos/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": { "type": "integer" },
+          "description": "Todo identifier"
+        }
+      ],
+      "get": {
+        "summary": "Get a single todo",
+        "responses": {
+          "200": {
+            "description": "Todo found",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Todo" } }
+            }
+          },
+          "404": {
+            "description": "Todo not found",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Replace a todo",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/TodoReplace" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Todo updated",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Todo" } }
+            }
+          },
+          "400": {
+            "description": "Invalid payload",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
+            }
+          },
+          "404": {
+            "description": "Todo not found",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Partially update a todo",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/TodoPatch" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Todo updated",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Todo" } }
+            }
+          },
+          "400": {
+            "description": "Invalid payload",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
+            }
+          },
+          "404": {
+            "description": "Todo not found",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a todo",
+        "responses": {
+          "200": {
+            "description": "Todo deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string", "example": "Todo deleted" },
+                    "todo": { "$ref": "#/components/schemas/Todo" }
+                  },
+                  "required": ["message", "todo"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Todo not found",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
+            }
+          }
+        }
+      }
+    }
+  }
+}

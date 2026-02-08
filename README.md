@@ -1,99 +1,113 @@
 # apiNode
 
-A simple RESTful API built with **Node.js**, **Express**, and JavaScript.
+A simple RESTful API built with Node.js, Express, and SQLite.
 
-This project provides basic backend functionality with CRUD endpoints — ideal as a starting API for learning, testing, or integration with frontend applications.
+This project provides backend functionality with CRUD endpoints using a lightweight SQLite database. It is designed for learning, testing, and small applications without requiring an external database server.
 
 ---
 
-## 🚀 Features
+## Features
 
-- REST API server using Node.js and Express
-- JSON request/response handling
+- REST API with Express
+- SQLite database (file-based, no server required)
 - CRUD operations
-- Easily extendable with database support
-- Structured folder layout
+- JSON request/response handling
+- Easy local setup
+- Lightweight and portable
 
 ---
 
-## 💻 Tech Stack
+## Tech Stack
 
 - Node.js
 - Express
+- SQLite
 - JavaScript (ES6+)
-- nodemon (for development)
+- nodemon (dev)
 
 ---
 
-## 📦 Project Structure
+## Why SQLite?
+
+This project uses SQLite for simplicity:
+
+- No database server needed
+- No installation required
+- Single file database
+- Perfect for development and demos
+
+The database is stored locally as:
+
+```
+database.sqlite
+```
+
+(or similar file inside the project)
+
+---
+
+## Project Structure
 
 ```
 .
 ├── src/
-│   ├── controllers/      # Route handlers
-│   ├── routes/           # Route definitions
-│   ├── middleware/       # Request middleware
-│   ├── models/           # Data models (if any)
-│   ├── utils/            # Helpers and utilities
-│   └── index.js          # App entry point
-├── .env.example          # Environment variables example
-├── package.json          # Dependencies & scripts
+│   ├── controllers/
+│   ├── routes/
+│   ├── db/              # SQLite connection/config
+│   ├── models/
+│   └── index.js
+├── database.sqlite
+├── package.json
 └── README.md
 ```
 
 ---
 
-## 🛠 Prerequisites
+## Prerequisites
 
-Make sure you have installed:
+Install:
 
-- **Node.js 18+**
-- **npm** or **yarn**
+- Node.js 18+
+- npm or yarn
+
+Check:
+
+```
+node -v
+```
 
 ---
 
-## ▶️ Quick Start
+## Getting Started
 
-### 1. Clone the repo
+### Clone
 
 ```
 git clone https://github.com/southriver/apiNode.git
 cd apiNode
 ```
 
-### 2. Install dependencies
+### Install dependencies
 
 ```
 npm install
-# or
-yarn install
 ```
 
-### 3. Set up environment
+### Run server
 
-Copy `.env.example` to `.env` and modify settings:
-
-```
-cp .env.example .env
-```
-
-Add your configurations (port, database URL, etc.).
-
-### 4. Run the server
-
-**Development:**
+Development:
 
 ```
 npm run dev
 ```
 
-**Production:**
+Production:
 
 ```
 npm start
 ```
 
-The API will run at:
+Server runs at:
 
 ```
 http://localhost:3000
@@ -101,120 +115,71 @@ http://localhost:3000
 
 ---
 
-## 📌 API Example Endpoints
+## API Endpoints
 
-> Adjust these based on your actual routes.
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET    | /api/items       | Get all items |
-| GET    | /api/items/:id   | Get item by ID |
-| POST   | /api/items       | Create new item |
-| PUT    | /api/items/:id   | Update item by ID |
-| DELETE | /api/items/:id   | Delete item by ID |
+| Method | Route | Description |
+|--------|---------|-------------|
+| GET | /api/items | Get all items |
+| GET | /api/items/:id | Get item by id |
+| POST | /api/items | Create new item |
+| PUT | /api/items/:id | Update item |
+| DELETE | /api/items/:id | Delete item |
 
 ---
 
-## 📘 Example Request (cURL)
+## Example Request
 
-### Create an item
+Create item:
 
-```bash
+```
 curl -X POST http://localhost:3000/api/items \
 -H "Content-Type: application/json" \
--d '{"name":"Sample","value":123}'
+-d '{"name":"Test item"}'
 ```
 
 ---
 
-## 🤖 Environment Variables
+## Database Notes
 
-Your `.env` file might include:
-
-```
-PORT=3000
-DATABASE_URL=mongodb://localhost:27017/mydb
-NODE_ENV=development
-```
-
-Modify according to your environment.
+- SQLite file is created automatically on first run
+- No setup required
+- To reset data, simply delete the `.sqlite` file
 
 ---
 
-## 🧩 Database Integration (Optional)
+## Development
 
-To add MongoDB support with Mongoose:
-
-```
-npm install mongoose
-```
-
-Then connect in your main app file:
-
-```js
-import mongoose from 'mongoose';
-
-mongoose.connect(process.env.DATABASE_URL);
-```
-
-Add schemas and models in `src/models/`.
-
----
-
-## 🧪 Testing
-
-(Optional) Add tests using Jest or Mocha:
+Optional:
 
 ```
-npm install --save-dev jest supertest
-```
-
-Define scripts in `package.json`:
-
-```
-"scripts": {
-  "test": "jest"
-}
+npm install -g nodemon
+npm run dev
 ```
 
 ---
 
-## 🐳 Docker (Optional)
-
-Example Dockerfile:
+## Docker (Optional)
 
 ```
 FROM node:18
 WORKDIR /app
 COPY . .
-RUN npm install --production
+RUN npm install
 EXPOSE 3000
-CMD ["node", "src/index.js"]
-```
-
-Build & run:
-
-```
-docker build -t apinode .
-docker run -p 3000:3000 apinode
+CMD ["npm", "start"]
 ```
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
-1. Fork the repository
-2. Create feature branch
-3. Commit changes
-4. Submit pull request
-
----
-
-## 📄 License
-
-Add your preferred license (e.g., MIT).
+1. Fork
+2. Create branch
+3. Commit
+4. Open PR
 
 ---
 
-Ready to help improve it — if you show me the actual folder structure or key files (like `package.json` or the API routes), I can tailor this README with real endpoints 👍.
-::contentReference[oaicite:0]{index=0}
+## License
+
+MIT

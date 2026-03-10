@@ -12,17 +12,16 @@
   ],
   "components": {
     "schemas": {
-      "Todo": {
+      "TodoDto": {
         "type": "object",
         "properties": {
           "id": { "type": "integer", "example": 1 },
           "title": { "type": "string", "example": "Buy milk" },
-          "completed": { "type": "boolean", "example": false },
-          "createdAt": { "type": "string", "format": "date-time" }
+          "completed": { "type": "boolean", "example": false }
         },
-        "required": ["id", "title", "completed", "createdAt"]
+        "required": ["id", "title", "completed"]
       },
-      "TodoInput": {
+      "CreateTodoDto": {
         "type": "object",
         "properties": {
           "title": { "type": "string", "example": "Buy milk" },
@@ -30,7 +29,7 @@
         },
         "required": ["title"]
       },
-      "TodoReplace": {
+      "UpdateTodoDto": {
         "type": "object",
         "properties": {
           "title": { "type": "string", "example": "Buy milk" },
@@ -38,7 +37,7 @@
         },
         "required": ["title", "completed"]
       },
-      "TodoPatch": {
+      "PatchTodoDto": {
         "type": "object",
         "properties": {
           "title": { "type": "string", "example": "Buy milk" },
@@ -71,7 +70,7 @@
             "description": "List of todos",
             "content": {
               "application/json": {
-                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Todo" } }
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/TodoDto" } }
               }
             }
           }
@@ -82,14 +81,14 @@
         "requestBody": {
           "required": true,
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/TodoInput" } }
+            "application/json": { "schema": { "$ref": "#/components/schemas/CreateTodoDto" } }
           }
         },
         "responses": {
           "201": {
             "description": "Todo created",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/Todo" } }
+              "application/json": { "schema": { "$ref": "#/components/schemas/TodoDto" } }
             }
           },
           "400": {
@@ -118,7 +117,7 @@
             "description": "Matching todos",
             "content": {
               "application/json": {
-                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Todo" } }
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/TodoDto" } }
               }
             }
           },
@@ -147,7 +146,7 @@
           "200": {
             "description": "Todo found",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/Todo" } }
+              "application/json": { "schema": { "$ref": "#/components/schemas/TodoDto" } }
             }
           },
           "404": {
@@ -163,14 +162,14 @@
         "requestBody": {
           "required": true,
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/TodoReplace" } }
+            "application/json": { "schema": { "$ref": "#/components/schemas/UpdateTodoDto" } }
           }
         },
         "responses": {
           "200": {
             "description": "Todo updated",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/Todo" } }
+              "application/json": { "schema": { "$ref": "#/components/schemas/TodoDto" } }
             }
           },
           "400": {
@@ -192,14 +191,14 @@
         "requestBody": {
           "required": false,
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/TodoPatch" } }
+            "application/json": { "schema": { "$ref": "#/components/schemas/PatchTodoDto" } }
           }
         },
         "responses": {
           "200": {
             "description": "Todo updated",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/Todo" } }
+              "application/json": { "schema": { "$ref": "#/components/schemas/TodoDto" } }
             }
           },
           "400": {
@@ -227,7 +226,7 @@
                   "type": "object",
                   "properties": {
                     "message": { "type": "string", "example": "Todo deleted" },
-                    "todo": { "$ref": "#/components/schemas/Todo" }
+                    "todo": { "$ref": "#/components/schemas/TodoDto" }
                   },
                   "required": ["message", "todo"]
                 }

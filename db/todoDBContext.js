@@ -1,4 +1,5 @@
 const { runAsync, getAsync, allAsync } = require("./db");
+const Todo = require("../domain/Todo");
 
 const listTodos = async (completed) => {
   let query = "SELECT * FROM todos";
@@ -10,25 +11,31 @@ const listTodos = async (completed) => {
     query += " WHERE completed = 0";
   }
 
-  return allAsync(query, params);
+  const rows = await allAsync(query, params);
+  return rows.map(Todo.fromRow);
 };
 
-const getTodoById = async (id) => getAsync("SELECT * FROM todos WHERE id = ?", [id]);
+const getTodoById = async (id) => {
+  const row = await getAsync("SELECT * FROM todos WHERE id = ?", [id]);
+  return Todo.fromRow(row);
+};
 
-const searchTodos = async (term) =>
-  allAsync("SELECT * FROM todos WHERE title LIKE ?", [`%${term}%`]);
+const searchTodos = async (term) => {
+  const rows = await allAsync("SELECT * FROM todos WHERE title LIKE ?", [`%${term}%`]);
+  return rows.map(Todo.fromRow);
+};
 
-const insertTodo = async ({ title, completed, createdAt }) =>
+const insertTodo = async (todo) =>
   runAsync("INSERT INTO todos (title, completed, createdAt) VALUES (?, ?, ?)", [
-    title,
-    completed ? 1 : 0,
-    createdAt,
+    todo.title,
+    todo.completed ? 1 : 0,
+    todo.createdAt,
   ]);
 
-const updateTodo = async (id, { title, completed }) =>
+const updateTodo = async (id, todo) =>
   runAsync("UPDATE todos SET title = ?, completed = ? WHERE id = ?", [
-    title,
-    completed ? 1 : 0,
+    todo.title,
+    todo.completed ? 1 : 0,
     id,
   ]);
 

@@ -1,69 +1,58 @@
 const todoDBContext = require("../db/todoDBContext");
-
-const toTodo = (row) =>
-  row
-    ? {
-        id: row.id,
-        title: row.title,
-        completed: Boolean(row.completed),
-        createdAt: row.createdAt,
-      }
-    : null;
+const Todo = require("../domain/Todo");
 
 class TodoService {
   async list(completed) {
-    const rows = await todoDBContext.listTodos(completed);
-    return rows.map(toTodo);
+    return todoDBContext.listTodos(completed);
   }
 
   async get(id) {
-    const row = await todoDBContext.getTodoById(id);
-    return toTodo(row);
+    return todoDBContext.getTodoById(id);
   }
 
   async search(keyword) {
     const term = keyword.trim();
-    const rows = await todoDBContext.searchTodos(term);
-    return rows.map(toTodo);
+    return todoDBContext.searchTodos(term);
   }
 
   async create({ title, completed }) {
-    const payload = {
+    const todo = new Todo({
       title: title.trim(),
       completed: Boolean(completed),
       createdAt: new Date().toISOString(),
-    };
+    });
 
-    const result = await todoDBContext.insertTodo(payload);
-    const row = await todoDBContext.getTodoById(result.lastID);
-    return toTodo(row);
+    const result = await todoDBContext.insertTodo(todo);
+    return todoDBContext.getTodoById(result.lastID);
   }
 
   async replace(id, { title, completed }) {
     const trimmedTitle = title.trim();
-    const result = await todoDBContext.updateTodo(id, {
+    const todo = new Todo({
+      id,
       title: trimmedTitle,
-      completed,
+      completed: Boolean(completed),
+      createdAt: new Date().toISOString(),
     });
+
+    const result = await todoDBContext.updateTodo(id, todo);
     if (result.changes === 0) return null;
-    const row = await todoDBContext.getTodoById(id);
-    return toTodo(row);
+    return todoDBContext.getTodoById(id);
   }
 
   async update(id, { title, completed }) {
     const existing = await todoDBContext.getTodoById(id);
     if (!existing) return null;
 
-    const newTitle = title !== undefined ? title.trim() : existing.title;
-    const newCompleted = completed !== undefined ? (completed ? 1 : 0) : existing.completed;
-
-    await todoDBContext.updateTodo(id, {
-      title: newTitle,
-      completed: newCompleted,
+    const todo = new Todo({
+      id,
+      title: title !== undefined ? title.trim() : existing.title,
+      completed: completed !== undefined ? Boolean(completed) : existing.completed,
+      createdAt: existing.createdAt,
     });
 
-    const row = await todoDBContext.getTodoById(id);
-    return toTodo(row);
+    await todoDBContext.updateTodo(id, todo);
+    return todoDBContext.getTodoById(id);
   }
 
   async delete(id) {
@@ -71,7 +60,7 @@ class TodoService {
     if (!existing) return null;
 
     await todoDBContext.deleteTodo(id);
-    return toTodo(existing);
+    return existing;
   }
 }
 

@@ -2,6 +2,10 @@ const express = require("express");
 const swaggerUi = require("swagger-ui-express");
 const swaggerDoc = require("./docs/openapi.json");
 const TodoService = require("./services/todoService");
+const TodoDto = require("./dto/TodoDto");
+const CreateTodoDto = require("./dto/CreateTodoDto");
+const UpdateTodoDto = require("./dto/UpdateTodoDto");
+const DtoValidationError = require("./dto/DtoValidationError");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -13,6 +17,14 @@ const swaggerDocument = { ...swaggerDoc, servers: [{ url: "/" }] };
 
 const todoService = new TodoService();
 
+const handleDtoValidationError = (err, res) => {
+  if (err instanceof DtoValidationError) {
+    res.status(err.statusCode).json({ error: err.message });
+    return true;
+  }
+  return false;
+};
+
 /**
  * GET /todos
  * Optional query: ?completed=true/false
@@ -22,7 +34,7 @@ app.get("/todos", async (req, res) => {
 
   try {
     const todos = await todoService.list(completed);
-    res.json(todos);
+    res.json(TodoDto.fromDomainList(todos));
   } catch (err) {
     console.error("Failed to list todos", err);
     res.status(500).json({ error: "Internal server error" });
@@ -42,7 +54,7 @@ app.get("/todos/search", async (req, res) => {
 
   try {
     const todos = await todoService.search(keyword);
-    res.json(todos);
+    res.json(TodoDto.fromDomainList(todos));
   } catch (err) {
     console.error("Failed to search todos", err);
     res.status(500).json({ error: "Internal server error" });
@@ -60,7 +72,7 @@ app.get("/todos/:id", async (req, res) => {
     if (!todo) {
       return res.status(404).json({ error: "Todo not found" });
     }
-    res.json(todo);
+    res.json(TodoDto.fromDomain(todo));
   } catch (err) {
     console.error("Failed to fetch todo", err);
     res.status(500).json({ error: "Internal server error" });
@@ -73,15 +85,18 @@ app.get("/todos/:id", async (req, res) => {
  * title is required
  */
 app.post("/todos", async (req, res) => {
-  const { title, completed = false } = req.body;
-
-  if (!title || typeof title !== "string") {
-    return res.status(400).json({ error: "Field 'title' is required and must be a string" });
+  let createTodoDto;
+  try {
+    createTodoDto = CreateTodoDto.fromRequest(req.body);
+  } catch (err) {
+    if (handleDtoValidationError(err, res)) return;
+    console.error("Failed to parse create todo request", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
 
   try {
-    const todo = await todoService.create({ title, completed });
-    res.status(201).json(todo);
+    const todo = await todoService.create(createTodoDto.toServiceInput());
+    res.status(201).json(TodoDto.fromDomain(todo));
   } catch (err) {
     console.error("Failed to create todo", err);
     res.status(500).json({ error: "Internal server error" });
@@ -94,25 +109,21 @@ app.post("/todos", async (req, res) => {
  */
 app.put("/todos/:id", async (req, res) => {
   const id = Number(req.params.id);
-
-  const { title, completed } = req.body;
-
-  if (!title || typeof title !== "string") {
-    return res.status(400).json({ error: "Field 'title' is required and must be a string" });
-  }
-
-  if (typeof completed !== "boolean") {
-    return res
-      .status(400)
-      .json({ error: "Field 'completed' is required and must be a boolean" });
+  let updateTodoDto;
+  try {
+    updateTodoDto = UpdateTodoDto.fromPutRequest(req.body);
+  } catch (err) {
+    if (handleDtoValidationError(err, res)) return;
+    console.error("Failed to parse replace todo request", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
 
   try {
-    const updated = await todoService.replace(id, { title, completed });
+    const updated = await todoService.replace(id, updateTodoDto.toServiceInput());
     if (!updated) {
       return res.status(404).json({ error: "Todo not found" });
     }
-    res.json(updated);
+    res.json(TodoDto.fromDomain(updated));
   } catch (err) {
     console.error("Failed to replace todo", err);
     res.status(500).json({ error: "Internal server error" });
@@ -125,27 +136,21 @@ app.put("/todos/:id", async (req, res) => {
  */
 app.patch("/todos/:id", async (req, res) => {
   const id = Number(req.params.id);
-
-  const { title, completed } = req.body;
-
-  if (title !== undefined) {
-    if (typeof title !== "string") {
-      return res.status(400).json({ error: "Field 'title' must be a string" });
-    }
-  }
-
-  if (completed !== undefined) {
-    if (typeof completed !== "boolean") {
-      return res.status(400).json({ error: "Field 'completed' must be a boolean" });
-    }
+  let updateTodoDto;
+  try {
+    updateTodoDto = UpdateTodoDto.fromPatchRequest(req.body);
+  } catch (err) {
+    if (handleDtoValidationError(err, res)) return;
+    console.error("Failed to parse update todo request", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
 
   try {
-    const updated = await todoService.update(id, { title, completed });
+    const updated = await todoService.update(id, updateTodoDto.toServiceInput());
     if (!updated) {
       return res.status(404).json({ error: "Todo not found" });
     }
-    res.json(updated);
+    res.json(TodoDto.fromDomain(updated));
   } catch (err) {
     console.error("Failed to update todo", err);
     res.status(500).json({ error: "Internal server error" });
@@ -163,7 +168,7 @@ app.delete("/todos/:id", async (req, res) => {
     if (!deleted) {
       return res.status(404).json({ error: "Todo not found" });
     }
-    res.json({ message: "Todo deleted", todo: deleted });
+    res.json({ message: "Todo deleted", todo: TodoDto.fromDomain(deleted) });
   } catch (err) {
     console.error("Failed to delete todo", err);
     res.status(500).json({ error: "Internal server error" });
@@ -173,6 +178,14 @@ app.delete("/todos/:id", async (req, res) => {
 // Health check
 app.get("/", (req, res) => {
   res.send("Todo API is running ✅");
+});
+
+// Expose the OpenAPI document as raw JSON
+app.get("/docs/openapi.json", (req, res) => {
+  res.json(swaggerDocument);
+});
+app.get("/openapi.json", (req, res) => {
+  res.json(swaggerDocument);
 });
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));

@@ -1,7 +1,10 @@
 const path = require("path");
 const sqlite3 = require("sqlite3").verbose();
 
-const DB_PATH = path.join(__dirname, "..", "todos.db");
+// Vercel's application directory is read-only; demo data lives in temporary storage.
+const DB_PATH = process.env.VERCEL
+  ? "/tmp/todos.db"
+  : path.join(__dirname, "..", "todos.db");
 const db = new sqlite3.Database(DB_PATH);
 
 db.serialize(() => {
